@@ -21,8 +21,11 @@ const afterHoursSection = document.getElementById('after_hours_section');
 const loadingSpinner = document.getElementById('loading_spinner');
 const toastEl = document.getElementById('toast');
 
-const btnDollar = document.getElementById('btn_dollar');
+const btnBtc = document.getElementById('btn_btc');
+const btnEth = document.getElementById('btn_eth');
+const btnUsdJpy = document.getElementById('btn_usdjpy');
 const btnSave = document.getElementById('btn_save');
+const btnLoad = document.getElementById('btn_load');
 const btnUpdate = document.getElementById('btn_update');
 
 
@@ -71,7 +74,7 @@ function showToast(message) {
 	toastEl.classList.remove('hidden');
 	setTimeout(() => {
 		toastEl.classList.add('hidden');
-	}, 2000);
+	}, 1000);
 }
 
 /**
@@ -151,7 +154,15 @@ function renderQuote(data) {
  */
 btnUpdate.addEventListener('click', fetchQuote);
 
-btnDollar.addEventListener('click', () => {
+btnBtc.addEventListener('click', () => {
+	tickerInput.value = 'BTC-USD';
+});
+
+btnEth.addEventListener('click', () => {
+	tickerInput.value = 'ETH-USD';
+});
+
+btnUsdJpy.addEventListener('click', () => {
 	tickerInput.value = 'JPY=X';
 });
 
@@ -162,6 +173,13 @@ btnSave.addEventListener('click', () => {
 	if (currentTicker) {
 		localStorage.setItem('stroid_saved_ticker', currentTicker);
 		showToast(`Saved ticker: ${currentTicker}`);
+	}
+});
+
+btnLoad.addEventListener('click', () => {
+	const savedTicker = localStorage.getItem('stroid_saved_ticker');
+	if (savedTicker) {
+		tickerInput.value = savedTicker;
 	}
 });
 
