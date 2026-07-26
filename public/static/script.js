@@ -21,6 +21,7 @@ const afterHoursSection = document.getElementById('after_hours_section');
 const loadingSpinner = document.getElementById('loading_spinner');
 const toastEl = document.getElementById('toast');
 
+const btnClear = document.getElementById('btn_clear');
 const btnBtc = document.getElementById('btn_btc');
 const btnEth = document.getElementById('btn_eth');
 const btnUsdJpy = document.getElementById('btn_usdjpy');
@@ -181,6 +182,11 @@ btnLoad.addEventListener('click', () => {
 	if (savedTicker) {
 		tickerInput.value = savedTicker;
 	}
+});
+
+btnClear.addEventListener('click', () => {
+	tickerInput.value = '';
+	tickerInput.focus();
 });
 
 tickerInput.addEventListener('keydown', (e) => {

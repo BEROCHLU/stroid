@@ -9,6 +9,7 @@ Yahoo Finance リアルタイム API + 時間外情報（株価・日時）の�
 """
 
 import json
+import socket
 import time
 from bottle import TEMPLATE_PATH, Bottle, debug, request, response, static_file, template  # type: ignore
 import requests
@@ -192,10 +193,42 @@ def server_static(filepath):
     return static_file(filepath, root="./public/static")  # type: ignore
 
 
+def get_local_ip():
+    """VPN環境下でも物理LAN（192.168.x.x等）のローカルIPを優先取得"""
+    try:
+        # PC内の全IPアドレス一覧を取得
+        hostname = socket.gethostname()
+        _, _, ip_list = socket.gethostbyname_ex(hostname)
+
+        # 192.168. 系の物理LAN IPを最優先
+        for ip in ip_list:
+            if ip.startswith("192.168."):
+                return ip
+
+        # 172.16.〜172.31. 系のプライベートIPを次点選択
+        for ip in ip_list:
+            if ip.startswith("172."):
+                parts = ip.split(".")
+                if len(parts) >= 2 and 16 <= int(parts[1]) <= 31:
+                    return ip
+
+        # フォールバック
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+
 # -----------------------------------------------------------------------------
 # サーバー起動メイン処理
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
-    print("Starting Stroid local server on http://127.0.0.1:5400 ...")
+    local_ip = get_local_ip()
+    print("Starting Stroid local server...")
+    print(f"  - Local:   http://localhost:5400")
+    print(f"  - Network: http://{local_ip}:5400")
     debug(True)
-    app.run(host="127.0.0.1", port=5400, reloader=False)
+    app.run(host="0.0.0.0", port=5400, reloader=False)

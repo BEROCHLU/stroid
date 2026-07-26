@@ -69,11 +69,13 @@ body {
 }
 
 .input-wrapper {
-	width: 160px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
 }
 
 .ticker-input {
-	width: 100%;
+	width: 150px;
 	height: 38px;
 	padding: 4px 6px 4px 12px;
 	font-family: var(--font-family);
@@ -89,10 +91,12 @@ body {
 	transition: box-shadow 0.2s ease;
 }
 
-.ticker-input::-webkit-search-cancel-button {
-	cursor: pointer;
-	padding: 2px;
-	margin-right: 2px;
+.btn-icon-clear {
+	width: 38px;
+	height: 38px;
+	flex-shrink: 0;
+	font-size: 15px;
+	padding: 0;
 }
 
 
