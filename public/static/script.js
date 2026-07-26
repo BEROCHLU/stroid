@@ -75,7 +75,7 @@ function showToast(message) {
 	toastEl.classList.remove('hidden');
 	setTimeout(() => {
 		toastEl.classList.add('hidden');
-	}, 1000);
+	}, 1500);
 }
 
 /**
