@@ -51,8 +51,8 @@ function getApiUrl(ticker) {
 
 	switch (location.hostname) {
 		case 'aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com':
-			// AWS API Gateway endpoint
-			baseUrl = 'https://l8u8iob6v1.execute-api.ap-northeast-1.amazonaws.com/new_stage';
+			// AWS Lambda Function URL endpoint
+			baseUrl = 'https://2q4qxczvx3y347l5uegv6zyxgy0xfduo.lambda-url.ap-northeast-1.on.aws/';
 			break;
 		case '127.0.0.1':
 		case 'localhost':
