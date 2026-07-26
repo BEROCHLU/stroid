@@ -5,12 +5,14 @@
 Stroid - ローカル開発用 Bottle サーバー
 ------------------------------------------
 ローカル環境 (http://127.0.0.1:5400) で Stroid Web アプリを起動・テストするためのサーバーです。
-Yahoo Finance リアルタイム API + 時間外情報（株価・日時）の補完取得機能を備えています。
+yfinance ライブラリにより高精度な株価・為替・時間外情報を取得します。
 """
 
 import json
 import socket
 import time
+from datetime import datetime
+import zoneinfo
 from bottle import TEMPLATE_PATH, Bottle, debug, request, response, static_file, template  # type: ignore
 import yfinance as yf
 
@@ -20,8 +22,8 @@ app = Bottle()
 # HTML テンプレート (index.html) の参照先フォルダを指定
 TEMPLATE_PATH.append("./public")
 
-# Yahoo Finance アクセス時の User-Agent
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+# 銘柄ごとの最新タイムスタンプ保持用辞書
+LATEST_MARKET_TIMES = {}
 
 
 # -----------------------------------------------------------------------------
@@ -34,10 +36,6 @@ def index():
     return template("index")  # type: ignore
 
 
-# 銘柄ごとの最新タイムスタンプ保持用辞書 (ロードバランサー遅延による巻き戻り防止)
-LATEST_MARKET_TIMES = {}
-
-
 # -----------------------------------------------------------------------------
 # ルート 2: 株価データ取得 API エンドポイント
 # -----------------------------------------------------------------------------
@@ -46,19 +44,17 @@ def fetch_data(ticker):
     yfinance ライブラリを利用して株価・為替・時間外データを高精度に取得
     """
     t = yf.Ticker(ticker)
-    
-    # 銘柄基本情報・リアルタイム価格 (fast_info / info)
     fast = t.fast_info
-    
+    info = getattr(t, "info", {}) or {}
+
     # 価格と前日終値の取得
     price = fast.get("last_price") or fast.get("regular_market_price")
     prev_close = fast.get("previous_close")
-    
+
     if price is None:
-        info = getattr(t, "info", {}) or {}
         price = info.get("regularMarketPrice") or info.get("currentPrice")
         prev_close = info.get("regularMarketPreviousClose") or info.get("previousClose")
-        
+
     if price is None:
         raise Exception(f"Price data not available for ticker: {ticker}")
 
@@ -72,15 +68,26 @@ def fetch_data(ticker):
         fmt_pct = ""
 
     # タイトル
-    info = getattr(t, "info", {}) or {}
     name = info.get("longName") or info.get("shortName") or ticker
     symbol = info.get("symbol", ticker)
     title = f"{name} ({symbol})"
 
-    # タイムゾーンと時間
-    tz_str = fast.get("timezone") or info.get("timezone", "UTC")
-    m_time = time.strftime(f"%I:%M:%S %p {tz_str}", time.gmtime())
-    market_time = f"As of {m_time}."
+    # タイムゾーンの変換オブジェクト作成
+    tz_name = fast.get("timezone") or info.get("timezone", "UTC")
+    try:
+        tz_obj = zoneinfo.ZoneInfo(tz_name)
+    except Exception:
+        tz_obj = zoneinfo.ZoneInfo("UTC")
+
+    # 通常取引時刻 (時間外と統一した Month Day at HH:MM:SS AM/PM Timezone フォーマット)
+    reg_time = info.get("regularMarketTime")
+    if reg_time:
+        dt_reg = datetime.fromtimestamp(reg_time, tz=tz_obj)
+        time_str = dt_reg.strftime("%B %d at %I:%M:%S %p %Z").strip()
+        market_time = f"{time_str}"
+    else:
+        m_time = time.strftime("%B %d at %I:%M:%S %p UTC", time.gmtime())
+        market_time = f"{m_time}"
 
     # 出来高 (Volume)
     raw_vol = fast.get("last_volume") or info.get("regularMarketVolume")
@@ -93,7 +100,7 @@ def fetch_data(ticker):
     quote_type = str(info.get("quoteType") or fast.get("quote_type") or "").upper()
     is_crypto = (quote_type == "CRYPTOCURRENCY") or ticker.endswith("-USD") or ticker.endswith("-EUR") or ticker.endswith("-BTC")
 
-    # 時間外データ (仮想通貨以外の場合にチェック)
+    # 時間外データ (仮想通貨以外の場合に Pre/Post Market をチェック)
     fmt_post_price = None
     fmt_post_change = None
     fmt_post_pct = None
@@ -101,18 +108,61 @@ def fetch_data(ticker):
 
     if not is_crypto:
         try:
-            hist = t.history(period="1d", interval="1m", prepost=True)
-            if not hist.empty:
-                last_price_val = float(hist["Close"].iloc[-1])
-                if abs(last_price_val - price) >= 0.01:
-                    fmt_post_price = f"{last_price_val:,.2f}"
-                    p_diff = last_price_val - price
-                    p_pct = (p_diff / price) * 100
-                    fmt_post_change = f"+{p_diff:,.2f}" if p_diff >= 0 else f"{p_diff:,.2f}"
-                    fmt_post_pct = f"(+{p_pct:.2f}%)" if p_pct >= 0 else f"({p_pct:.2f}%)"
-                    fmt_post_time = "Post/Pre Market"
+            post_price = info.get("postMarketPrice") or fast.get("post_market_price")
+            post_change = info.get("postMarketChange")
+            post_pct = info.get("postMarketChangePercent")
+            post_time_unix = info.get("postMarketTime")
+
+            pre_price = info.get("preMarketPrice") or fast.get("pre_market_price")
+            pre_change = info.get("preMarketChange")
+            pre_pct = info.get("preMarketChangePercent")
+            pre_time_unix = info.get("preMarketTime")
+
+            if isinstance(post_price, (int, float)) and post_price > 0:
+                fmt_post_price = f"{post_price:,.2f}"
+                if isinstance(post_change, (int, float)):
+                    fmt_post_change = f"+{post_change:,.2f}" if post_change >= 0 else f"{post_change:,.2f}"
+                if isinstance(post_pct, (int, float)):
+                    fmt_post_pct = f"(+{post_pct:.2f}%)" if post_pct >= 0 else f"({post_pct:.2f}%)"
+                if post_time_unix:
+                    dt_post = datetime.fromtimestamp(post_time_unix, tz=tz_obj)
+                    month_day = dt_post.strftime("%B %d at %I:%M:%S %p %Z")
+                    fmt_post_time = f"After hours: {month_day}"
+                else:
+                    fmt_post_time = "After hours"
+
+            elif isinstance(pre_price, (int, float)) and pre_price > 0:
+                fmt_post_price = f"{pre_price:,.2f}"
+                if isinstance(pre_change, (int, float)):
+                    fmt_post_change = f"+{pre_change:,.2f}" if pre_change >= 0 else f"{pre_change:,.2f}"
+                if isinstance(pre_pct, (int, float)):
+                    fmt_post_pct = f"(+{pre_pct:.2f}%)" if pre_pct >= 0 else f"({pre_pct:.2f}%)"
+                if pre_time_unix:
+                    dt_pre = datetime.fromtimestamp(pre_time_unix, tz=tz_obj)
+                    month_day = dt_pre.strftime("%B %d at %I:%M:%S %p %Z")
+                    fmt_post_time = f"Pre-market: {month_day}"
+                else:
+                    fmt_post_time = "Pre-market"
+
+            # フォールバック: history
+            if not fmt_post_price:
+                hist = t.history(period="1d", interval="1m", prepost=True)
+                if not hist.empty:
+                    last_price_val = float(hist["Close"].iloc[-1])
+                    if abs(last_price_val - price) >= 0.01:
+                        fmt_post_price = f"{last_price_val:,.2f}"
+                        p_diff = last_price_val - price
+                        p_pct = (p_diff / price) * 100
+                        fmt_post_change = f"+{p_diff:,.2f}" if p_diff >= 0 else f"{p_diff:,.2f}"
+                        fmt_post_pct = f"(+{p_pct:.2f}%)" if p_pct >= 0 else f"({p_pct:.2f}%)"
+                        last_time = hist.index[-1]
+                        try:
+                            time_str = last_time.strftime("%B %d at %I:%M:%S %p %Z").strip()
+                            fmt_post_time = f"After hours: {time_str}"
+                        except Exception:
+                            fmt_post_time = "Post/Pre Market"
         except Exception as ex:
-            print(f"yfinance history prepost check failed for {ticker}: {ex}")
+            print(f"yfinance pre/post market check failed for {ticker}: {ex}")
 
     return {
         "ticker": ticker,
@@ -133,8 +183,7 @@ def fetch_data(ticker):
 @app.get("/quote")  # type: ignore
 def quote():
     """
-    クエリパラメータ ?t=AAPL や ?t=QS や ?t=BTC-USD を受け取り、
-    Yahoo Finance から最速・高精度なデータを返却する API
+    株価データ取得 API エンドポイント
     """
     response.content_type = "application/json; charset=UTF-8"
     response.headers["Access-Control-Allow-Origin"] = "*"
@@ -145,54 +194,42 @@ def quote():
         return json.dumps({"error": "Missing parameter: t"})
 
     try:
-        result_data = fetch_data(ticker)
-        if result_data is None:
+        data = fetch_data(ticker)
+        if data is None:
             response.status = 204
             return ""
-        return json.dumps(result_data, ensure_ascii=False)
-
+        return json.dumps(data, ensure_ascii=False)
     except Exception as e:
-        print(f"Error getting data for {ticker}: {e}")
         response.status = 500
         return json.dumps({"error": str(e)})
 
 
 # -----------------------------------------------------------------------------
-# ルート 3: 静的ファイル (CSS / JS / 画像) の配信
+# ルート 3: 静的ファイル配信 (CSS, JS, Favicon)
 # -----------------------------------------------------------------------------
 @app.get("/static/<filepath:path>")  # type: ignore
 def server_static(filepath):
-    """public/static/ 以下のファイルを配信"""
+    """public/static/ 配下の CSS, JS, 画像等を配信"""
     return static_file(filepath, root="./public/static")  # type: ignore
 
 
+# -----------------------------------------------------------------------------
+# ネットワーク IP 取得ヘルパー
+# -----------------------------------------------------------------------------
 def get_local_ip():
-    """VPN環境下でも物理LAN（192.168.x.x等）のローカルIPを優先取得"""
+    """VPN アクティブ時も LAN 内の物理 IP (192.168.x.x) を優先取得"""
     try:
-        # PC内の全IPアドレス一覧を取得
         hostname = socket.gethostname()
-        _, _, ip_list = socket.gethostbyname_ex(hostname)
-
-        # 192.168. 系の物理LAN IPを最優先
-        for ip in ip_list:
-            if ip.startswith("192.168."):
-                return ip
-
-        # 172.16.〜172.31. 系のプライベートIPを次点選択
-        for ip in ip_list:
-            if ip.startswith("172."):
-                parts = ip.split(".")
-                if len(parts) >= 2 and 16 <= int(parts[1]) <= 31:
-                    return ip
-
-        # フォールバック
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        ip = s.getsockname()[0]
-        s.close()
-        return ip
+        addresses = socket.gethostbyname_ex(hostname)[2]
+        lan_ips = [ip for ip in addresses if ip.startswith("192.168.")]
+        if lan_ips:
+            return lan_ips[0]
+        other_ips = [ip for ip in addresses if not ip.startswith("127.") and not ip.startswith("10.")]
+        if other_ips:
+            return other_ips[0]
     except Exception:
-        return "127.0.0.1"
+        pass
+    return "127.0.0.1"
 
 
 # -----------------------------------------------------------------------------
@@ -200,8 +237,13 @@ def get_local_ip():
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
     local_ip = get_local_ip()
-    print("Starting Stroid local server...")
-    print(f"  - Local:   http://localhost:5400")
-    print(f"  - Network: http://{local_ip}:5400")
+    port = 5400
+
+    print("\n" + "=" * 50)
+    print(" 🚀 Stroid Local Bottle Server Running!")
+    print(f"  - Local:   http://127.0.0.1:{port}")
+    print(f"  - Network: http://{local_ip}:{port}")
+    print("=" * 50 + "\n")
+
     debug(True)
-    app.run(host="0.0.0.0", port=5400, reloader=False)
+    app.run(host="0.0.0.0", port=port, reloader=True)
