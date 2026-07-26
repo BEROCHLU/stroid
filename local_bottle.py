@@ -21,7 +21,7 @@ app = Bottle()
 TEMPLATE_PATH.append("./public")
 
 # Yahoo Finance アクセス時の User-Agent
-USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
 
 
 # -----------------------------------------------------------------------------
@@ -90,8 +90,8 @@ def fetch_data(ticker):
         else:
             LATEST_MARKET_TIMES[ticker] = reg_time  # 新しいタイムスタンプが来たら更新
 
-        m_time = time.strftime("%I:%M:%S %p UTC", time.gmtime(reg_time))
-        market_time = f"As of {m_time}. Market Open."
+        m_time = time.strftime("%I:%M:%S %p EDT", time.gmtime(reg_time))
+        market_time = f"As of {m_time}."
     else:
         market_time = ""
 
@@ -195,6 +195,6 @@ def server_static(filepath):
 # サーバー起動メイン処理
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
-    print("Starting Stroid local server on http://localhost:5400 ...")
+    print("Starting Stroid local server on http://127.0.0.1:5400 ...")
     debug(True)
-    app.run(host="localhost", port=5400, reloader=False)
+    app.run(host="127.0.0.1", port=5400, reloader=False)
