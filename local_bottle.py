@@ -90,7 +90,8 @@ def fetch_data(ticker):
         else:
             LATEST_MARKET_TIMES[ticker] = reg_time  # 新しいタイムスタンプが来たら更新
 
-        m_time = time.strftime("%I:%M:%S %p EDT", time.gmtime(reg_time))
+        tz_str = meta.get("timezone", "UTC")
+        m_time = time.strftime(f"%I:%M:%S %p {tz_str}", time.gmtime(reg_time))
         market_time = f"As of {m_time}."
     else:
         market_time = ""

@@ -69,7 +69,7 @@ body {
 }
 
 .input-wrapper {
-	width: 130px;
+	width: 160px;
 }
 
 .ticker-input {
@@ -77,7 +77,7 @@ body {
 	height: 38px;
 	padding: 4px 6px 4px 12px;
 	font-family: var(--font-family);
-	font-size: 18px;
+	font-size: 16px;
 	font-weight: 500;
 	color: #1e293b;
 	background-color: #ffffff;
