@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Stroid - Stock & Forex Tracker</title>
+	<meta name="description" content="Simple, fast real-time stock and exchange rate tracker.">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="./static/style.css?v=19">
+
+
+
+
+
+
+
+
+	<link rel="icon" type="image/png" href="./static/favicon.png?v=2">
+</head>
+<body>
+	<main class="app-viewport">
+		<div class="stroid-card">
+			<!-- Header Area: Ticker Input & Live Clock -->
+			<div class="card-header">
+				<div class="input-wrapper">
+					<input type="search" id="text_box" class="ticker-input" value="" autocomplete="off" spellcheck="false" placeholder="Ticker...">
+				</div>
+
+				<div class="clock-wrapper">
+					<span id="live_clock" class="live-clock">--:--</span>
+				</div>
+			</div>
+
+			<!-- Main Display Area: Stock Quote Card -->
+			<div class="quote-display-area" id="quote_area">
+				<div class="title-row">
+					<h1 id="quote_title" class="quote-title">---</h1>
+				</div>
+
+				<div class="price-section primary-section">
+					<div class="price-row">
+						<span id="regular_price" class="main-price">---</span>
+						<span id="regular_change" class="price-change"></span>
+					</div>
+					<div id="regular_volume" class="market-volume-notice"></div>
+					<div id="regular_time" class="market-time-notice"></div>
+				</div>
+
+
+				<div class="price-section secondary-section hidden" id="after_hours_section">
+					<div class="price-row">
+						<span id="post_price" class="post-price"></span>
+						<span id="post_change" class="price-change"></span>
+					</div>
+					<div id="post_time" class="market-time-notice"></div>
+				</div>
+			</div>
+
+			<!-- Loading / Offline Indicator -->
+			<div id="loading_spinner" class="spinner-overlay hidden">
+				<div class="spinner"></div>
+			</div>
+
+			<!-- Controls Area: Action Buttons -->
+			<div class="controls-area">
+				<div class="action-grid">
+					<button id="btn_save" class="btn btn-action">save</button>
+					<button id="btn_update" class="btn btn-action btn-main">update</button>
+					<button id="btn_dollar" class="btn btn-square" title="USD/JPY">$</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Toast Notification -->
+		<div id="toast" class="toast hidden">Saved to LocalStorage!</div>
+	</main>
+
+	<script src="./static/script.js?v=8" type="module"></script>
+</body>
+</html>
+

@@ -1,0 +1,5 @@
+{
+    "typeCheckingMode": "basic",
+    "reportArgumentType": false,
+    "reportOptionalSubscript": false
+}
