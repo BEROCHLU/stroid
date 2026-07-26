@@ -11,7 +11,7 @@ ALLOWED_ORIGINS = {
 }
 
 # Yahoo Finance アクセス時の User-Agent
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
 
 # 銘柄ごとの最新タイムスタンプ保持用辞書 (ロードバランサー遅延による巻き戻り防止)
 LATEST_MARKET_TIMES = {}
