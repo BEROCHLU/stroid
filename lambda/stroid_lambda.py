@@ -2,13 +2,6 @@ import json
 import time
 import yfinance as yf
 
-# CORS（オリジン間リソース共有）を許可するオリジン一覧
-ALLOWED_ORIGINS = {
-    "http://aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com",
-    "http://127.0.0.1:5400",
-    "http://localhost:5400",
-}
-
 
 def fetch_data(ticker):
     """
@@ -99,15 +92,9 @@ def fetch_data(ticker):
 
 
 def lambda_handler(event, context):
-    headers = event.get("headers", {}) or {}
-    req_origin = headers.get("origin") or headers.get("Origin") or ""
-    cors_origin = req_origin if req_origin in ALLOWED_ORIGINS else "*"
-
-    cors_headers = {
+    # AWS Lambda Function URL の CORS 自動付与との重複を防ぐため、Python 側は Content-Type のみ指定
+    response_headers = {
         "Content-Type": "application/json; charset=UTF-8",
-        "Access-Control-Allow-Origin": cors_origin,
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "OPTIONS,GET",
     }
 
     params = event.get("queryStringParameters", {}) or {}
@@ -116,7 +103,7 @@ def lambda_handler(event, context):
     if not ticker:
         return {
             "statusCode": 400,
-            "headers": cors_headers,
+            "headers": response_headers,
             "body": json.dumps({"error": "Missing parameter: t"}),
         }
 
@@ -125,18 +112,18 @@ def lambda_handler(event, context):
         if result_data is None:
             return {
                 "statusCode": 204,
-                "headers": cors_headers,
+                "headers": response_headers,
                 "body": "",
             }
         return {
             "statusCode": 200,
-            "headers": cors_headers,
+            "headers": response_headers,
             "body": json.dumps(result_data, ensure_ascii=False),
         }
     except Exception as e:
         print(f"Error getting data for {ticker}: {str(e)}")
         return {
             "statusCode": 500,
-            "headers": cors_headers,
+            "headers": response_headers,
             "body": json.dumps({"error": str(e)}),
         }
