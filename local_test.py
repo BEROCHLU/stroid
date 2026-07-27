@@ -123,10 +123,7 @@ def fetch_data(ticker):
                     fmt_post_pct = f"(+{post_pct:.2f}%)" if post_pct >= 0 else f"({post_pct:.2f}%)"
                 if post_time_unix:
                     dt_post = datetime.fromtimestamp(post_time_unix, tz=tz_obj)
-                    month_day = dt_post.strftime("%B %d at %I:%M:%S %p %Z")
-                    fmt_post_time = f"After hours: {month_day}"
-                else:
-                    fmt_post_time = "After hours"
+                    fmt_post_time = dt_post.strftime("%B %d at %I:%M:%S %p %Z")
 
             elif isinstance(pre_price, (int, float)) and pre_price > 0:
                 fmt_post_price = f"{pre_price:,.2f}"
@@ -136,28 +133,9 @@ def fetch_data(ticker):
                     fmt_post_pct = f"(+{pre_pct:.2f}%)" if pre_pct >= 0 else f"({pre_pct:.2f}%)"
                 if pre_time_unix:
                     dt_pre = datetime.fromtimestamp(pre_time_unix, tz=tz_obj)
-                    month_day = dt_pre.strftime("%B %d at %I:%M:%S %p %Z")
-                    fmt_post_time = f"Pre-market: {month_day}"
-                else:
-                    fmt_post_time = "Pre-market"
+                    fmt_post_time = dt_pre.strftime("%B %d at %I:%M:%S %p %Z")
 
-            # フォールバック: history
-            if not fmt_post_price:
-                hist = t.history(period="1d", interval="1m", prepost=True)
-                if not hist.empty:
-                    last_price_val = float(hist["Close"].iloc[-1])
-                    if abs(last_price_val - price) >= 0.01:
-                        fmt_post_price = f"{last_price_val:,.2f}"
-                        p_diff = last_price_val - price
-                        p_pct = (p_diff / price) * 100
-                        fmt_post_change = f"+{p_diff:,.2f}" if p_diff >= 0 else f"{p_diff:,.2f}"
-                        fmt_post_pct = f"(+{p_pct:.2f}%)" if p_pct >= 0 else f"({p_pct:.2f}%)"
-                        last_time = hist.index[-1]
-                        try:
-                            time_str = last_time.strftime("%B %d at %I:%M:%S %p %Z").strip()
-                            fmt_post_time = f"After hours: {time_str}"
-                        except Exception:
-                            fmt_post_time = "Post/Pre Market"
+
         except Exception as ex:
             print(f"yfinance pre/post market check failed for {ticker}: {ex}")
 

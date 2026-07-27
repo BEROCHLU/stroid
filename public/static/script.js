@@ -6,7 +6,6 @@
 // DOM Elements
 const tickerInput = document.getElementById('text_box');
 
-
 const liveClock = document.getElementById('live_clock');
 const quoteTitle = document.getElementById('quote_title');
 const regularPrice = document.getElementById('regular_price');
@@ -31,7 +30,7 @@ const btnUpdate = document.getElementById('btn_update');
 
 
 /**
- * Set Clock to Last Fetch Time (HH:mm:ss)
+ * Update Live Clock (HH:mm)
  */
 function updateClock() {
 	const now = new Date();
@@ -40,7 +39,9 @@ function updateClock() {
 	liveClock.textContent = `${hours}:${minutes}`;
 }
 
-
+// 画面読み込み時に即時表示 ＋ 1秒(1000ms)ごとに自動更新
+updateClock();
+setInterval(updateClock, 1000);
 
 /**
  * Determine API Base URL
@@ -92,8 +93,6 @@ function formatChangeElement(el, changeStr, percentStr) {
 	el.className = 'price-change';
 }
 
-
-
 /**
  * Fetch Quote Data from API / Lambda
  */
@@ -127,16 +126,14 @@ async function fetchQuote() {
  * Render Quote Data onto DOM
  */
 function renderQuote(data) {
-	updateClock();
 	quoteTitle.textContent = data.title || data.ticker || 'N/A';
 	regularPrice.textContent = data.price || '---';
 
 	formatChangeElement(regularChange, data.priceChange, data.priceChangePercent);
 
-	// Display real market time notice from Yahoo Finance (e.g., "As of 4:53:09 AM UTC. Market Open.")
+	// Display real market time notice from Yahoo Finance
 	regularTime.textContent = data.marketTime || '';
 	regularVolume.textContent = data.volume || '';
-
 
 	if (data.postPrice) {
 		afterHoursSection.classList.remove('hidden');
@@ -169,7 +166,6 @@ btnUsdJpy.addEventListener('click', () => {
 
 
 btnSave.addEventListener('click', () => {
-
 	const currentTicker = tickerInput.value.trim().toUpperCase();
 	if (currentTicker) {
 		localStorage.setItem('stroid_saved_ticker', currentTicker);
@@ -205,5 +201,3 @@ window.addEventListener('DOMContentLoaded', () => {
 		tickerInput.value = savedTicker;
 	}
 });
-
-
