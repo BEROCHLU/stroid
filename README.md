@@ -13,6 +13,10 @@ Stroidは、株式・為替・暗号資産の価格をシンプルな画面で�
 - 銘柄コードのブラウザへの保存と読み込み
 - PCとモバイルの両方で利用できるコンパクトな画面
 
+<p align="center">
+  <img src=".github/image1.png" alt="Stroid Screenshot">
+</p>
+
 ## 公開先
 
 [http://aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com/stroid/](http://aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com/stroid/)
