@@ -1,17 +1,17 @@
 # Stroid
 
-Stroid は、Yahoo Finance のデータを利用して株価・為替・暗号資産の現在値を表示するシンプルな Web アプリです。  
-フロントエンドは静的ファイルとして配信でき、ローカル開発時は Bottle サーバー、公開時は S3 静的サイト + AWS Lambda Function URL を使う構成です。
+Stroidは、株式・為替・暗号資産の価格をシンプルな画面で確認するWebアプリケーションです。銘柄コードを入力すると、Yahoo Financeのデータを基に現在値、前日比、出来高、取引時刻を表示します。株式では、取得できる場合にプレマーケットまたはアフターマーケットの価格も表示します。
+
+フロントエンドはHTML、CSS、JavaScriptで構成され、価格取得APIはPythonと[`yfinance`](https://pypi.org/project/yfinance/)で実装されています。ローカル開発ではBottle、本番環境ではAWS LambdaとS3を利用する構成です。
 
 ## 主な機能
 
-- ティッカーを入力して価格情報を取得
-- 前日比・前日比率・出来高・市場時刻を表示
-- 米国株などで取得できる場合はプレマーケット / アフターマーケット価格を表示
-- BTC、ETH、USD/JPY のショートカットボタン
-- 入力したティッカーをブラウザの LocalStorage に保存 / 読み込み
-- ローカル開発用 Bottle サーバー
-- GitHub Actions による S3 への静的ファイルデプロイ
+- 株式、為替、暗号資産の価格検索
+- 現在値、前日比、騰落率、出来高、取引時刻の表示
+- 株式のプレマーケット／アフターマーケット情報の表示
+- BTC/USD、ETH/USD、USD/JPYを入力するショートカット
+- 銘柄コードのブラウザへの保存と読み込み
+- PCとモバイルの両方で利用できるコンパクトな画面
 
 ## 公開先
 
@@ -21,114 +21,111 @@ Stroid は、Yahoo Finance のデータを利用して株価・為替・暗号�
 
 ```text
 .
-├── lambda/
-│   └── lambda_function.py      # AWS Lambda 用の株価取得 API
-├── public/
-│   ├── index.html              # フロントエンド HTML
+├── public/                         # 静的フロントエンド
+│   ├── index.html
 │   └── static/
-│       ├── script.js           # フロントエンドロジック
-│       ├── style.css           # スタイル
+│       ├── script.js
+│       ├── style.css
 │       └── favicon.png
-├── local_test.py               # ローカル開発用 Bottle サーバー
-├── requirements.txt            # Python 依存関係
-├── run_Windows.bat             # Windows 用ローカル起動スクリプト
+├── lambda/
+│   └── lambda_function.py          # AWS Lambda用API
+├── local_test.py                   # Bottleによるローカルサーバー
+├── requirements.txt                # Python依存パッケージ
+├── run_Windows.bat                 # Windows用起動スクリプト
 └── .github/workflows/
-    └── stroid-deploy-s3.yml    # S3 デプロイ用 GitHub Actions
+    └── stroid-deploy-s3.yml         # public/をS3へ同期するWorkflow
 ```
 
-## 技術スタック
+## 必要な環境
 
-- Python
-- Bottle
-- yfinance
-- HTML / CSS / JavaScript
-- AWS S3 Static Website Hosting
-- AWS Lambda Function URL
-- GitHub Actions
+- Python 3（`zoneinfo`を使用）
+- インターネット接続
 
-## セットアップ
+価格データの取得にはYahoo Financeへ接続できる必要があります。
 
-Python 3 が必要です。
+## ローカルでの起動
 
 ```bash
-pip install -r requirements.txt
+python local_test.py
 ```
 
-## ローカル起動
+起動後、ブラウザで <http://127.0.0.1:5400> を開きます。
 
-```bash
-python3 local_test.py
-```
-
-起動後、ブラウザで以下を開きます。
-
-```text
-http://127.0.0.1:5400
-```
-
-`run_Windows.bat` でも起動できます。
+サーバーは`0.0.0.0:5400`で待ち受けます。同じネットワーク内の別端末からアクセスする場合は、起動時に表示されるNetwork URLを使用してください。
 
 ## 使い方
 
-1. テキストボックスに Yahoo Finance 形式のティッカーを入力します。
-2. `update` ボタン、または Enter キーで価格を取得します。
-3. 必要に応じて `save` で現在のティッカーを保存し、`load` で読み込みます。
+1. 入力欄にYahoo Finance形式の銘柄コードを入力します。
+2. `update`を押すか、Enterキーを押します。
+3. 必要に応じて`save`で銘柄コードをブラウザのLocalStorageへ保存し、`load`で復元します。
 
-入力例:
+入力例：
 
-```text
-AAPL
-MSFT
-7203.T
-BTC-USD
-ETH-USD
-JPY=X
-```
+| 対象 | 銘柄コード |
+| --- | --- |
+| Apple | `AAPL` |
+| トヨタ自動車 | `7203.T` |
+| Bitcoin / USD | `BTC-USD` |
+| Ethereum / USD | `ETH-USD` |
+| USD / JPY | `JPY=X` |
+
+`BTC`、`ETH`、`$/¥`の各ボタンは対応するコードを入力欄へ設定します。価格を取得するには、その後`update`を押してください。
 
 ## API
 
-ローカル開発時は Bottle サーバーが API を提供します。
+ローカルサーバーは次のGETエンドポイントを提供します。
 
-```text
-GET /api/quote?t=<ticker>
-GET /quote?t=<ticker>
+```http
+GET /api/quote?t=AAPL
+GET /quote?t=AAPL
 ```
 
-例:
+実行例：
 
-```text
-http://127.0.0.1:5400/api/quote?t=AAPL
+```bash
+curl "http://127.0.0.1:5400/api/quote?t=AAPL"
 ```
 
-レスポンス例:
+レスポンス例：
 
 ```json
 {
   "ticker": "AAPL",
   "title": "Apple Inc. (AAPL)",
-  "price": "123.45",
-  "priceChange": "+1.23",
-  "priceChangePercent": "(+1.01%)",
-  "marketTime": "July 27 at 04:00:00 PM EDT",
-  "volume": "Vol: 12,345,678",
-  "postPrice": "124.00",
-  "postPriceChange": "+0.55",
-  "postPriceChangePercent": "(+0.45%)",
-  "postMarketTime": "July 27 at 07:59:00 PM EDT"
+  "price": "210.50",
+  "priceChange": "+1.25",
+  "priceChangePercent": "(+0.60%)",
+  "marketTime": "July 28 at 04:00:00 PM EDT",
+  "volume": "Vol: 45,000,000",
+  "postPrice": "210.80",
+  "postPriceChange": "+0.30",
+  "postPriceChangePercent": "(+0.14%)",
+  "postMarketTime": "July 28 at 07:59:00 PM EDT"
 }
 ```
 
-`t` パラメータがない場合は `400`、データ取得に失敗した場合は `500` を返します。
+値は表示用に整形された文字列です。時間外データや出来高を取得できない場合、対応するフィールドは`null`になります。
 
-## フロントエンドの API 接続先
+| ステータス | 条件 |
+| --- | --- |
+| `200` | 価格を取得できた |
+| `400` | クエリパラメーター`t`がない |
+| `500` | 銘柄が見つからない、または外部データの取得に失敗した |
 
-`public/static/script.js` の `getApiUrl()` で接続先を切り替えています。
+## AWSへの配置
 
-- `localhost` / `127.0.0.1`: `/api/quote`
-- `aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com`: AWS Lambda Function URL
-- その他のホスト: `/quote`
+本番構成では、`public/`をS3の静的Webサイトとして配信し、`lambda/lambda_function.py`をLambda Function URLから呼び出します。
 
-S3 バケット名、静的サイト URL、Lambda Function URL を変更した場合は、この分岐も更新してください。
+### Lambda
+
+- ハンドラー: `lambda_function.lambda_handler`
+- ランタイム: Python 3.13
+- 依存パッケージ: `yfinance`
+- 入力: Function URLのクエリパラメーター`t`
+
+Lambdaへ配置する際は、`lambda_function.py`と依存パッケージをデプロイパッケージへ含めるか、依存パッケージをLambda Layerとして追加してください。Function URLからブラウザのリクエストを受け付けるためのCORS設定も必要です。
+
+フロントエンドの接続先は`public/static/script.js`の`getApiUrl()`で決まります。S3のホスト名やLambda Function URLを変更する場合は、この関数の設定も更新してください。
 
 ## AWS デプロイ
 
@@ -149,8 +146,12 @@ aws s3 sync ./public/ s3://aws-s3-serverless/stroid/ --delete
 
 注意: この workflow は静的ファイルのみをデプロイします。`lambda/lambda_function.py` の Lambda 反映は別途行う必要があります。
 
-## 開発メモ
+## 開発時の注意
 
-- 価格データの取得は `yfinance` に依存します。Yahoo Finance 側の仕様変更やレート制限により、取得に失敗する可能性があります。
-- ローカルサーバーは `0.0.0.0:5400` で起動するため、同一 LAN 内の端末からもアクセスできます。
-- `local_test.py` と `lambda/lambda_function.py` には同等の `fetch_data()` 実装があります。API ロジックを変更する場合は両方の整合性に注意してください。
+- `local_test.py`と`lambda/lambda_function.py`には同じ価格取得処理があります。取得項目や整形方法を変更する場合は、両方を更新してください。
+- 表示される価格や時刻はYahoo Financeから取得できた値に依存し、リアルタイム性や完全性は保証されません。
+- 暗号資産および為替では時間外取引の判定を行いません。
+
+## ライセンス
+
+[MIT License](LICENSE)

@@ -38,12 +38,19 @@ def fetch_data(ticker):
     symbol = info.get("symbol", ticker)
     title = f"{name} ({symbol})"
 
-    # タイムゾーンの変換オブジェクト作成
-    tz_name = fast.get("timezone") or info.get("timezone", "UTC")
-    try:
-        tz_obj = zoneinfo.ZoneInfo(tz_name)
-    except Exception:
+    # 銘柄タイプの判定
+    quote_type = str(fast.get("quote_type") or info.get("quoteType") or "").upper()
+    is_crypto = (quote_type == "CRYPTOCURRENCY")
+    is_currency = (quote_type == "CURRENCY")
+
+    # タイムゾーンの決定
+    if is_crypto:
         tz_obj = zoneinfo.ZoneInfo("UTC")
+    elif is_currency:
+        tz_obj = zoneinfo.ZoneInfo("America/New_York")
+    else:
+        tz_name = fast.get("timezone") or info.get("timezone")
+        tz_obj = zoneinfo.ZoneInfo(tz_name or "UTC")
 
     # 通常取引時刻 (時間外と統一した Month Day at HH:MM:SS AM/PM Timezone フォーマット)
     reg_time = info.get("regularMarketTime")
@@ -62,17 +69,13 @@ def fetch_data(ticker):
     else:
         volume = None
 
-    # 仮想通貨 (Cryptocurrency) のみ時間外チェックをスキップ
-    quote_type = str(info.get("quoteType") or fast.get("quote_type") or "").upper()
-    is_crypto = (quote_type == "CRYPTOCURRENCY") or ticker.endswith("-USD") or ticker.endswith("-EUR") or ticker.endswith("-BTC")
-
-    # 時間外データ (仮想通貨以外の場合に Pre/Post Market をチェック)
+    # 時間外データ (仮想通貨・為替以外の場合に Pre/Post Market をチェック)
     fmt_post_price = None
     fmt_post_change = None
     fmt_post_pct = None
     fmt_post_time = None
 
-    if not is_crypto:
+    if not (is_crypto or is_currency):
         try:
             post_price = info.get("postMarketPrice") or fast.get("post_market_price")
             post_change = info.get("postMarketChange")
