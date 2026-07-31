@@ -22,7 +22,7 @@ def fetch_data(ticker):
         prev_close = info.get("regularMarketPreviousClose") or info.get("previousClose")
 
     if price is None:
-        raise Exception(f"Price data not available for ticker: {ticker}")
+        raise Exception(f"{ticker}: not found")
 
     if prev_close is not None and prev_close > 0:
         change = price - prev_close
@@ -57,10 +57,10 @@ def fetch_data(ticker):
     if reg_time:
         dt_reg = datetime.fromtimestamp(reg_time, tz=tz_obj)
         time_str = dt_reg.strftime("%B %d at %I:%M:%S %p %Z").strip()
-        market_time = f"{time_str}"
+        market_time = time_str
     else:
         m_time = time.strftime("%B %d at %I:%M:%S %p UTC", time.gmtime())
-        market_time = f"{m_time}"
+        market_time = m_time
 
     # 出来高 (Volume)
     raw_vol = fast.get("last_volume") or info.get("regularMarketVolume")

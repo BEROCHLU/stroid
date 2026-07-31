@@ -76,7 +76,7 @@ function showToast(message) {
 	toastEl.classList.remove('hidden');
 	setTimeout(() => {
 		toastEl.classList.add('hidden');
-	}, 1500);
+	}, 1800);
 }
 
 /**
@@ -110,13 +110,16 @@ async function fetchQuote() {
 			// HTTP 204 No Content: Stale timestamp from delayed node. Silently skip update.
 			return;
 		}
-		if (!res.ok) throw new Error(`HTTP ${res.status}`);
+		if (!res.ok) {
+			const errData = await res.json();
+			throw new Error(errData.error || `HTTP ${res.status}`);
+		}
 		const data = await res.json();
 		renderQuote(data);
 	} catch (err) {
 
 		console.error('API Fetch failed:', err);
-		showToast(`Fetch error: Check connection or API server`);
+		showToast(err.message);
 	} finally {
 		loadingSpinner.classList.add('hidden');
 	}

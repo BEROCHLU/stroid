@@ -199,18 +199,8 @@ body {
 	display: flex !important;
 }
 
-.secondary-section .post-price {
-	font-size: 22px;
-}
 
-.secondary-section .price-change {
-	font-size: 15px;
-}
 
-.secondary-section .market-time-notice {
-	font-size: 13px;
-	color: var(--text-muted);
-}
 
 
 
@@ -306,8 +296,10 @@ body {
 /* Toast Notification */
 .toast {
 	position: fixed;
-	bottom: 85px;
-	background-color: rgba(15, 23, 42, 0.33);
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-color: rgba(15, 23, 42, 0.5);
 	backdrop-filter: blur(4px);
 	-webkit-backdrop-filter: blur(4px);
 	color: #ffffff;
@@ -323,6 +315,6 @@ body {
 
 .toast.hidden {
 	opacity: 0;
-	transform: translateY(10px);
+	transform: translate(-50%, -50%) translateY(10px);
 	pointer-events: none;
 }
