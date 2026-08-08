@@ -4,6 +4,7 @@
   <a href="README.md">English</a> | 日本語
 </div>
 
+[![stroid-deploy-s3](https://github.com/BEROCHLU/stroid/actions/workflows/stroid-deploy-s3.yml/badge.svg)](https://github.com/BEROCHLU/stroid/actions/workflows/stroid-deploy-s3.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Stroidは、株式・為替・暗号資産の価格をシンプルな画面で確認するWebアプリケーションです。銘柄コードを入力すると、Yahoo Financeのデータを基に現在値、前日比、出来高、取引時刻を表示します。株式では、取得できる場合にプレマーケットまたはアフターマーケットの価格も表示します。

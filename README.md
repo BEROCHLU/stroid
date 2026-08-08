@@ -4,6 +4,7 @@
   English | <a href="README.ja.md">日本語</a>
 </div>
 
+[![stroid-deploy-s3](https://github.com/BEROCHLU/stroid/actions/workflows/stroid-deploy-s3.yml/badge.svg)](https://github.com/BEROCHLU/stroid/actions/workflows/stroid-deploy-s3.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Stroid is a web application for checking stock, foreign exchange, and cryptocurrency prices through a simple interface. Enter a ticker symbol to display the current price, change, volume, and market time using data from Yahoo Finance. For stocks, pre-market or after-hours prices are also shown when available.
