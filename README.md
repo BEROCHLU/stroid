@@ -1,96 +1,103 @@
 # Stroid
 
-Stroidは、株式・為替・暗号資産の価格をシンプルな画面で確認するWebアプリケーションです。銘柄コードを入力すると、Yahoo Financeのデータを基に現在値、前日比、出来高、取引時刻を表示します。株式では、取得できる場合にプレマーケットまたはアフターマーケットの価格も表示します。
+<div align="right">
+  English | <a href="README.ja.md">日本語</a>
+</div>
 
-フロントエンドはHTML、CSS、JavaScriptで構成され、価格取得APIはPythonと[`yfinance`](https://pypi.org/project/yfinance/)で実装されています。ローカル開発ではBottle、本番環境ではAWS LambdaとS3を利用する構成です。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 主な機能
+Stroid is a web application for checking stock, foreign exchange, and cryptocurrency prices through a simple interface. Enter a ticker symbol to display the current price, change, volume, and market time using data from Yahoo Finance. For stocks, pre-market or after-hours prices are also shown when available.
 
-- 株式、為替、暗号資産の価格検索
-- 現在値、前日比、騰落率、出来高、取引時刻の表示
-- 株式のプレマーケット／アフターマーケット情報の表示
-- BTC/USD、ETH/USD、USD/JPYを入力するショートカット
-- 銘柄コードのブラウザへの保存と読み込み
-- PCとモバイルの両方で利用できるコンパクトな画面
+The frontend is built with HTML, CSS, and JavaScript. The price API is implemented in Python using [`yfinance`](https://pypi.org/project/yfinance/). Bottle is used for local development, while the production setup uses AWS Lambda and S3.
+
+## Features
+
+- Search stock, foreign exchange, and cryptocurrency prices
+- Display the current price, change, percentage change, volume, and market time
+- Display pre-market and after-hours information for stocks
+- Shortcuts for BTC/USD, ETH/USD, and USD/JPY
+- Save and load a ticker symbol in the browser
+- Compact interface for both desktop and mobile devices
 
 <p align="center">
-  <img src=".github/image1.png" alt="Stroid Screenshot">
+  <img src=".github/image1.png" alt="Stroid screenshot">
 </p>
 
-## 公開先
+## Live Demo
 
 [http://aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com/stroid/](http://aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com/stroid/)
 
-## 構成
+## Project Structure
 
 ```text
 .
-├── public/                         # 静的フロントエンド
+├── public/                         # Static frontend
 │   ├── index.html
 │   └── static/
 │       ├── script.js
 │       ├── style.css
 │       └── favicon.png
 ├── lambda/
-│   └── lambda_function.py          # AWS Lambda用API
-├── local_test.py                   # Bottleによるローカルサーバー
-├── requirements.txt                # Python依存パッケージ
-├── run_Windows.bat                 # Windows用起動スクリプト
+│   └── lambda_function.py          # API for AWS Lambda
+├── local_test.py                   # Local Bottle server
+├── requirements.txt                # Python dependencies
+├── run_Windows.bat                 # Windows startup script
 └── .github/workflows/
-    └── stroid-deploy-s3.yml         # public/をS3へ同期するWorkflow
+    └── stroid-deploy-s3.yml         # Workflow that syncs public/ to S3
 ```
 
-## 必要な環境
+## Requirements
 
-- Python 3（`zoneinfo`を使用）
-- インターネット接続
+- Python 3 (uses `zoneinfo`)
+- Internet connection
 
-価格データの取得にはYahoo Financeへ接続できる必要があります。
+Yahoo Finance must be reachable to retrieve price data.
 
-## ローカルでの起動
+## Running Locally
 
 ```bash
+pip install -r requirements.txt
 python local_test.py
 ```
 
-起動後、ブラウザで <http://127.0.0.1:5400> を開きます。
+After the server starts, open <http://127.0.0.1:5400> in your browser.
 
-サーバーは`0.0.0.0:5400`で待ち受けます。同じネットワーク内の別端末からアクセスする場合は、起動時に表示されるNetwork URLを使用してください。
+The server listens on `0.0.0.0:5400`. To access it from another device on the same network, use the Network URL displayed at startup.
 
-## 使い方
+## Usage
 
-1. 入力欄にYahoo Finance形式の銘柄コードを入力します。
-2. `update`を押すか、Enterキーを押します。
-3. 必要に応じて`save`で銘柄コードをブラウザのLocalStorageへ保存し、`load`で復元します。
+1. Enter a Yahoo Finance ticker symbol in the input field.
+2. Press `update` or the Enter key.
+3. If needed, press `save` to store the ticker in browser LocalStorage and `load` to restore it.
 
-入力例：
+Examples:
 
-| 対象 | 銘柄コード |
+| Asset | Ticker |
 | --- | --- |
 | Apple | `AAPL` |
-| トヨタ自動車 | `7203.T` |
+| Toyota Motor | `7203.T` |
 | Bitcoin / USD | `BTC-USD` |
 | Ethereum / USD | `ETH-USD` |
 | USD / JPY | `JPY=X` |
 
-`BTC`、`ETH`、`$/¥`の各ボタンは対応するコードを入力欄へ設定します。価格を取得するには、その後`update`を押してください。
+The `BTC`, `ETH`, and `$/¥` buttons place the corresponding ticker in the input field. Press `update` afterward to retrieve the price.
 
 ## API
 
-ローカルサーバーは次のGETエンドポイントを提供します。
+The local server provides the following GET endpoints.
 
 ```http
 GET /api/quote?t=AAPL
 GET /quote?t=AAPL
 ```
 
-実行例：
+Example:
 
 ```bash
 curl "http://127.0.0.1:5400/api/quote?t=AAPL"
 ```
 
-レスポンス例：
+Example response:
 
 ```json
 {
@@ -108,54 +115,54 @@ curl "http://127.0.0.1:5400/api/quote?t=AAPL"
 }
 ```
 
-値は表示用に整形された文字列です。時間外データや出来高を取得できない場合、対応するフィールドは`null`になります。
+Values are formatted as strings for display. If after-hours data or volume is unavailable, the corresponding fields are `null`.
 
-| ステータス | 条件 |
+| Status | Condition |
 | --- | --- |
-| `200` | 価格を取得できた |
-| `400` | クエリパラメーター`t`がない |
-| `500` | 銘柄が見つからない、または外部データの取得に失敗した |
+| `200` | The price was retrieved successfully |
+| `400` | The `t` query parameter is missing |
+| `500` | The ticker was not found or the external data request failed |
 
-## AWSへの配置
+## Deploying to AWS
 
-本番構成では、`public/`をS3の静的Webサイトとして配信し、`lambda/lambda_function.py`をLambda Function URLから呼び出します。
+In production, `public/` is served as an S3 static website, and `lambda/lambda_function.py` is called through a Lambda Function URL.
 
 ### Lambda
 
-- ハンドラー: `lambda_function.lambda_handler`
-- ランタイム: Python 3.13
-- 依存パッケージ: `yfinance`
-- 入力: Function URLのクエリパラメーター`t`
+- Handler: `lambda_function.lambda_handler`
+- Runtime: Python 3.13
+- Dependency: `yfinance`
+- Input: the `t` query parameter of the Function URL
 
-Lambdaへ配置する際は、`lambda_function.py`と依存パッケージをデプロイパッケージへ含めるか、依存パッケージをLambda Layerとして追加してください。Function URLからブラウザのリクエストを受け付けるためのCORS設定も必要です。
+When deploying to Lambda, include `lambda_function.py` and its dependencies in the deployment package, or add the dependencies as a Lambda Layer. CORS must also be configured so the Function URL can accept browser requests.
 
-フロントエンドの接続先は`public/static/script.js`の`getApiUrl()`で決まります。S3のホスト名やLambda Function URLを変更する場合は、この関数の設定も更新してください。
+The frontend endpoint is selected by `getApiUrl()` in `public/static/script.js`. If the S3 hostname or Lambda Function URL changes, update this function as well.
 
-## AWS デプロイ
+## AWS Deployment
 
-`.github/workflows/stroid-deploy-s3.yml` は、`main` ブランチへの push 時に `public/` 配下を S3 バケットへ同期します。
+`.github/workflows/stroid-deploy-s3.yml` syncs the contents of `public/` to the S3 bucket on every push to the `main` branch.
 
-必要な GitHub Secrets:
+Required GitHub Secrets:
 
 ```text
 AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
 ```
 
-現在の workflow は以下を実行します。
+The current workflow runs:
 
 ```bash
 aws s3 sync ./public/ s3://aws-s3-serverless/stroid/ --delete
 ```
 
-注意: この workflow は静的ファイルのみをデプロイします。`lambda/lambda_function.py` の Lambda 反映は別途行う必要があります。
+Note: This workflow deploys only the static files. `lambda/lambda_function.py` must be deployed to Lambda separately.
 
-## 開発時の注意
+## Development Notes
 
-- `local_test.py`と`lambda/lambda_function.py`には同じ価格取得処理があります。取得項目や整形方法を変更する場合は、両方を更新してください。
-- 表示される価格や時刻はYahoo Financeから取得できた値に依存し、リアルタイム性や完全性は保証されません。
-- 暗号資産および為替では時間外取引の判定を行いません。
+- `local_test.py` and `lambda/lambda_function.py` contain the same price retrieval logic. Update both when changing retrieved fields or formatting.
+- Displayed prices and times depend on data available from Yahoo Finance; real-time accuracy and completeness are not guaranteed.
+- After-hours trading is not checked for cryptocurrencies or foreign exchange.
 
-## ライセンス
+## License
 
 [MIT License](LICENSE)
