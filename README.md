@@ -137,6 +137,8 @@ In production, `public/` is served as an S3 static website, and `lambda/lambda_f
 
 When deploying to Lambda, include `lambda_function.py` and its dependencies in the deployment package, or add the dependencies as a Lambda Layer. CORS must also be configured so the Function URL can accept browser requests.
 
+For detailed instructions on building and setting up the Lambda Layer, see [AWS Lambda Layer Setup](https://github.com/BEROCHLU/market-chart#aws-lambda-layer-setup).
+
 The frontend endpoint is selected by `getApiUrl()` in `public/static/script.js`. If the S3 hostname or Lambda Function URL changes, update this function as well.
 
 ## AWS Deployment

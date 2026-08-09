@@ -137,6 +137,8 @@ curl "http://127.0.0.1:5400/api/quote?t=AAPL"
 
 Lambdaへ配置する際は、`lambda_function.py`と依存パッケージをデプロイパッケージへ含めるか、依存パッケージをLambda Layerとして追加してください。Function URLからブラウザのリクエストを受け付けるためのCORS設定も必要です。
 
+Lambda Layer のビルドおよびセットアップの詳細は、[AWS Lambda Layer Setup](https://github.com/BEROCHLU/market-chart#aws-lambda-layer-setup) を参照してください。
+
 フロントエンドの接続先は`public/static/script.js`の`getApiUrl()`で決まります。S3のホスト名やLambda Function URLを変更する場合は、この関数の設定も更新してください。
 
 ## AWS デプロイ
