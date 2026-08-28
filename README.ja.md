@@ -26,7 +26,7 @@ Stroidは、株式・為替・暗号資産の価格をシンプルな画面で�
 
 ## 公開先
 
-[http://aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com/stroid/](http://aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com/stroid/)
+[https://berochlu.github.io/stroid/](https://berochlu.github.io/stroid/)
 
 ## 構成
 
@@ -44,7 +44,7 @@ Stroidは、株式・為替・暗号資産の価格をシンプルな画面で�
 ├── requirements.txt                # Python依存パッケージ
 ├── run_Windows.bat                 # Windows用起動スクリプト
 └── .github/workflows/
-    └── stroid-deploy-s3.yml         # public/をS3へ同期するWorkflow
+    └── stroid-deploy-pages.yml      # public/をGitHub PagesへデプロイするWorkflow
 ```
 
 ## 必要な環境
@@ -124,9 +124,9 @@ curl "http://127.0.0.1:5400/api/quote?t=AAPL"
 | `400` | クエリパラメーター`t`がない |
 | `500` | 銘柄が見つからない、または外部データの取得に失敗した |
 
-## AWSへの配置
+## 本番環境への配置
 
-本番構成では、`public/`をS3の静的Webサイトとして配信し、`lambda/lambda_function.py`をLambda Function URLから呼び出します。
+本番構成では、`public/`をGitHub Pagesで静的ホスティングし、`lambda/lambda_function.py`をAWS Lambda Function URLから呼び出します。
 
 ### Lambda
 
@@ -139,26 +139,13 @@ Lambdaへ配置する際は、`lambda_function.py`と依存パッケージをデ
 
 Lambda Layer のビルドおよびセットアップの詳細は、[AWS Lambda Layer Setup](https://github.com/BEROCHLU/market-chart#aws-lambda-layer-setup) を参照してください。
 
-フロントエンドの接続先は`public/static/script.js`の`getApiUrl()`で決まります。S3のホスト名やLambda Function URLを変更する場合は、この関数の設定も更新してください。
+フロントエンドの接続先は`public/static/script.js`の`getApiUrl()`で決まります。ホスト名やLambda Function URLを変更する場合は、この関数の設定も更新してください。
 
-## AWS デプロイ
+### GitHub Pages デプロイ
 
-`.github/workflows/stroid-deploy-s3.yml` は、`main` ブランチへの push 時に `public/` 配下を S3 バケットへ同期します。
+`.github/workflows/stroid-deploy-pages.yml` は、`main` ブランチへの push 時に `public/` 配下を GitHub Pages へ自動デプロイします。
 
-必要な GitHub Secrets:
-
-```text
-AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY
-```
-
-現在の workflow は以下を実行します。
-
-```bash
-aws s3 sync ./public/ s3://aws-s3-serverless/stroid/ --delete
-```
-
-注意: この workflow は静的ファイルのみをデプロイします。`lambda/lambda_function.py` の Lambda 反映は別途行う必要があります。
+注意: この workflow は静的フロントエンドファイルのみをデプロイします。`lambda/lambda_function.py` の Lambda 反映は別途行う必要があります。
 
 ## 開発時の注意
 

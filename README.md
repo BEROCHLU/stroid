@@ -26,7 +26,7 @@ The frontend is built with HTML, CSS, and JavaScript. The price API is implement
 
 ## Live Demo
 
-[http://aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com/stroid/](http://aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com/stroid/)
+[https://berochlu.github.io/stroid/](https://berochlu.github.io/stroid/)
 
 ## Project Structure
 
@@ -44,7 +44,7 @@ The frontend is built with HTML, CSS, and JavaScript. The price API is implement
 ├── requirements.txt                # Python dependencies
 ├── run_Windows.bat                 # Windows startup script
 └── .github/workflows/
-    └── stroid-deploy-s3.yml         # Workflow that syncs public/ to S3
+    └── stroid-deploy-pages.yml      # Workflow that deploys public/ to GitHub Pages
 ```
 
 ## Requirements
@@ -124,9 +124,9 @@ Values are formatted as strings for display. If after-hours data or volume is un
 | `400` | The `t` query parameter is missing |
 | `500` | The ticker was not found or the external data request failed |
 
-## Deploying to AWS
+## Deployment
 
-In production, `public/` is served as an S3 static website, and `lambda/lambda_function.py` is called through a Lambda Function URL.
+In production, `public/` is hosted on GitHub Pages, and `lambda/lambda_function.py` is called through an AWS Lambda Function URL.
 
 ### Lambda
 
@@ -139,26 +139,13 @@ When deploying to Lambda, include `lambda_function.py` and its dependencies in t
 
 For detailed instructions on building and setting up the Lambda Layer, see [AWS Lambda Layer Setup](https://github.com/BEROCHLU/market-chart#aws-lambda-layer-setup).
 
-The frontend endpoint is selected by `getApiUrl()` in `public/static/script.js`. If the S3 hostname or Lambda Function URL changes, update this function as well.
+The frontend endpoint is selected by `getApiUrl()` in `public/static/script.js`. If the hostname or Lambda Function URL changes, update this function as well.
 
-## AWS Deployment
+### GitHub Pages Deployment
 
-`.github/workflows/stroid-deploy-s3.yml` syncs the contents of `public/` to the S3 bucket on every push to the `main` branch.
+`.github/workflows/stroid-deploy-pages.yml` automatically deploys the contents of `public/` to GitHub Pages on every push to the `main` branch.
 
-Required GitHub Secrets:
-
-```text
-AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY
-```
-
-The current workflow runs:
-
-```bash
-aws s3 sync ./public/ s3://aws-s3-serverless/stroid/ --delete
-```
-
-Note: This workflow deploys only the static files. `lambda/lambda_function.py` must be deployed to Lambda separately.
+Note: This workflow deploys only the static frontend files. `lambda/lambda_function.py` must be deployed to Lambda separately.
 
 ## Development Notes
 

@@ -52,6 +52,7 @@ function getApiUrl(ticker) {
 
 	switch (location.hostname) {
 		case 'aws-s3-serverless.s3-website-ap-northeast-1.amazonaws.com':
+		case 'berochlu.github.io':
 			// AWS Lambda Function URL endpoint
 			baseUrl = 'https://2q4qxczvx3y347l5uegv6zyxgy0xfduo.lambda-url.ap-northeast-1.on.aws/';
 			break;
