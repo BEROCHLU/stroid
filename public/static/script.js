@@ -26,7 +26,7 @@ const btnEth = document.getElementById('btn_eth');
 const btnUsdJpy = document.getElementById('btn_usdjpy');
 const btnSave = document.getElementById('btn_save');
 const btnLoad = document.getElementById('btn_load');
-const btnUpdate = document.getElementById('btn_update');
+const btnGet = document.getElementById('btn_get');
 
 
 /**
@@ -153,7 +153,7 @@ function renderQuote(data) {
 /**
  * Event Listeners
  */
-btnUpdate.addEventListener('click', fetchQuote);
+btnGet.addEventListener('click', fetchQuote);
 
 btnBtc.addEventListener('click', () => {
 	tickerInput.value = 'BTC-USD';

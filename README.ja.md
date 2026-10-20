@@ -68,7 +68,7 @@ python local_test.py
 ## 使い方
 
 1. 入力欄にYahoo Finance形式の銘柄コードを入力します。
-2. `update`を押すか、Enterキーを押します。
+2. `get`を押すか、Enterキーを押します。
 3. 必要に応じて`save`で銘柄コードをブラウザのLocalStorageへ保存し、`load`で復元します。
 
 入力例：
@@ -81,7 +81,7 @@ python local_test.py
 | Ethereum / USD | `ETH-USD` |
 | USD / JPY | `JPY=X` |
 
-`BTC`、`ETH`、`$/¥`の各ボタンは対応するコードを入力欄へ設定します。価格を取得するには、その後`update`を押してください。
+`BTC`、`ETH`、`$/¥`の各ボタンは対応するコードを入力欄へ設定します。価格を取得するには、その後`get`を押してください。
 
 ## API
 

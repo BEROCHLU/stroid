@@ -68,7 +68,7 @@ The server listens on `0.0.0.0:5400`. To access it from another device on the sa
 ## Usage
 
 1. Enter a Yahoo Finance ticker symbol in the input field.
-2. Press `update` or the Enter key.
+2. Press `get` or the Enter key.
 3. If needed, press `save` to store the ticker in browser LocalStorage and `load` to restore it.
 
 Examples:
@@ -81,7 +81,7 @@ Examples:
 | Ethereum / USD | `ETH-USD` |
 | USD / JPY | `JPY=X` |
 
-The `BTC`, `ETH`, and `$/¥` buttons place the corresponding ticker in the input field. Press `update` afterward to retrieve the price.
+The `BTC`, `ETH`, and `$/¥` buttons place the corresponding ticker in the input field. Press `get` afterward to retrieve the price.
 
 ## API
 
